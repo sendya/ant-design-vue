@@ -197,7 +197,6 @@ describe('Anchor Render', () => {
     });
 
     wrapper.find(`a[href="${href}"]`).trigger('click');
-
     wrapper.vm.$refs.anchorRef.handleScroll();
     expect(event).not.toBe(undefined);
     expect(link).toEqual({ href, title });

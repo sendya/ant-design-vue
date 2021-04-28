@@ -149,6 +149,16 @@ const getOptionProps = instance => {
   }
   return res;
 };
+
+/**
+ * @deprecated use `getPropsSlot` func.
+ *
+ * @param {} instance
+ * @param {*} prop
+ * @param {*} options
+ * @param {*} execute
+ * @returns
+ */
 const getComponent = (instance, prop = 'default', options = instance, execute = true) => {
   let com = undefined;
   if (instance.$) {
