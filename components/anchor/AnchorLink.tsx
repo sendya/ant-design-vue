@@ -1,5 +1,5 @@
 import {
-  ComponentPublicInstance,
+  ComponentInternalInstance,
   defineComponent,
   inject,
   nextTick,
@@ -33,15 +33,15 @@ export default defineComponent({
       scrollTo: noop,
       $data: {},
     } as AntAnchor);
-    const antAnchorContext = inject('antAnchorContext', {}) as ComponentPublicInstance;
+    const antAnchorContext = inject('antAnchorContext', {}) as ComponentInternalInstance;
     const configProvider = inject('configProvider', defaultConfigProvider);
 
     const handleClick = (e: Event) => {
-      antAnchor.scrollTo(props.href);
+      // antAnchor.scrollTo(props.href);
       const { scrollTo } = antAnchor;
       const { href, title } = props;
-      if (antAnchorContext.$emit) {
-        antAnchorContext.$emit('click', e, { title, href });
+      if (antAnchorContext.emit) {
+        antAnchorContext.emit('click', e, { title, href });
       }
       scrollTo(href);
     };

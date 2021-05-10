@@ -88,14 +88,13 @@ export default defineComponent({
   name: 'AAnchor',
   inheritAttrs: false,
   props: AnchorProps,
-  expose: ['handleScroll', 'handleScrollTo'],
   emits: ['change', 'click'],
-  setup(props, { emit, attrs, slots, expose }) {
+  setup(props, { emit, attrs, slots }) {
     const configProvider = inject('configProvider', defaultConfigProvider);
     const instance = getCurrentInstance();
     const inkNodeRef = ref();
     const anchorRef = ref();
-    const data = reactive<AnchorState>({
+    const state = reactive<AnchorState>({
       activeLink: null,
       links: [],
       sPrefixCls: '',
@@ -119,7 +118,7 @@ export default defineComponent({
       const linkSections: Array<Section> = [];
       const { getContainer } = props;
       const container = getContainer();
-      data.links.forEach(link => {
+      state.links.forEach(link => {
         const sharpLinkMatch = sharpMatcherRegx.exec(link.toString());
         if (!sharpLinkMatch) {
           return;
@@ -143,9 +142,9 @@ export default defineComponent({
       return '';
     };
     const setCurrentActiveLink = (link: string) => {
-      const { activeLink } = data;
+      const { activeLink } = state;
       if (activeLink !== link) {
-        data.activeLink = link;
+        state.activeLink = link;
         emit('change', link);
       }
     };
@@ -167,17 +166,17 @@ export default defineComponent({
       const eleOffsetTop = getOffsetTop(targetElement, container);
       let y = scrollTop + eleOffsetTop;
       y -= targetOffset !== undefined ? targetOffset : offsetTop || 0;
-      data.animating = true;
+      state.animating = true;
 
       scrollTo(y, {
         callback: () => {
-          data.animating = false;
+          state.animating = false;
         },
         getContainer,
       });
     };
     const handleScroll = () => {
-      if (data.animating) {
+      if (state.animating) {
         return;
       }
       const { offsetTop, bounds, targetOffset } = props;
@@ -192,7 +191,7 @@ export default defineComponent({
       if (typeof document === 'undefined') {
         return;
       }
-      const { sPrefixCls } = data;
+      const { sPrefixCls } = state;
       const linkNode = anchorRef.value.getElementsByClassName(`${sPrefixCls}-link-title-active`)[0];
       if (linkNode) {
         (inkNodeRef.value as HTMLElement).style.top = `${linkNode.offsetTop +
@@ -204,47 +203,42 @@ export default defineComponent({
     // provide data
     provide('antAnchor', {
       registerLink: (link: string) => {
-        if (!data.links.includes(link)) {
-          data.links.push(link);
+        if (!state.links.includes(link)) {
+          state.links.push(link);
         }
       },
       unregisterLink: (link: string) => {
-        const index = data.links.indexOf(link);
+        const index = state.links.indexOf(link);
         if (index !== -1) {
-          data.links.splice(index, 1);
+          state.links.splice(index, 1);
         }
       },
-      $data: data,
+      $data: state,
       scrollTo: handleScrollTo,
     } as AntAnchor);
     provide('antAnchorContext', instance);
 
-    expose({
-      handleScroll,
-      handleScrollTo,
-    });
-
     onMounted(() => {
       nextTick(() => {
         const { getContainer } = props;
-        data.scrollContainer = getContainer();
-        data.scrollEvent = addEventListener(data.scrollContainer, 'scroll', handleScroll);
+        state.scrollContainer = getContainer();
+        state.scrollEvent = addEventListener(state.scrollContainer, 'scroll', handleScroll);
         handleScroll();
       });
     });
     onBeforeUnmount(() => {
-      if (data.scrollEvent) {
-        data.scrollEvent.remove();
+      if (state.scrollEvent) {
+        state.scrollEvent.remove();
       }
     });
     onUpdated(() => {
-      if (data.scrollEvent) {
+      if (state.scrollEvent) {
         const { getContainer } = props;
         const currentContainer = getContainer();
-        if (data.scrollContainer !== currentContainer) {
-          data.scrollContainer = currentContainer;
-          data.scrollEvent.remove();
-          data.scrollEvent = addEventListener(data.scrollContainer, 'scroll', handleScroll);
+        if (state.scrollContainer !== currentContainer) {
+          state.scrollContainer = currentContainer;
+          state.scrollEvent.remove();
+          state.scrollEvent = addEventListener(state.scrollContainer, 'scroll', handleScroll);
           handleScroll();
         }
       }
@@ -261,10 +255,10 @@ export default defineComponent({
       } = props;
       const getPrefixCls = configProvider.getPrefixCls;
       const prefixCls = getPrefixCls('anchor', customizePrefixCls);
-      data.sPrefixCls = prefixCls;
+      state.sPrefixCls = prefixCls;
 
       const inkClass = classNames(`${prefixCls}-ink-ball`, {
-        visible: data.activeLink,
+        visible: state.activeLink,
       });
 
       const wrapperClass = classNames(props.wrapperClass, `${prefixCls}-wrapper`);
